@@ -1,0 +1,17 @@
+{
+    "name": "Book App PWA",
+    "short_name": "App",
+    "description": "Aplikacja PWA",
+    "start_url": "/",
+    "display": "fullscreen",
+    "background_color": "#D7BFDC",
+    "theme_color": "#6F2DA8",
+    "icons": [
+        {
+          "src": "/templates/icon.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+  }
+  

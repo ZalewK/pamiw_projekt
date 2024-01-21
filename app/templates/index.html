@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorium PAMIW - aplikacja webowa</title>
+    <link rel="icon" href="/templates/icon.png">
+    <link rel="manifest" href="/templates/manifest.json">
+    <link rel="sw" href="/templates/service_worker.js">
+
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="473791179594-fe1a7nrem7d8b8k34t5vbdlkkjchql9o.apps.googleusercontent.com">
+
+    <style>
+        .g-signin2 {
+            margin-top: 20px;
+        }
+    </style>
+
+    <style>
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+
+        body.dark-mode th {
+            background-color: #444;
+            color: #fff;
+        }
+
+        body.dark-mode td {
+            background-color: #555;
+            color: #fff;
+        }
+        body.dark-mode h1 {
+            color: #fff;
+        }
+        body {
+            font-family: 'Helvetica', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        button {
+            font-family: 'Lato', sans-serif;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            background-color: #e8e8e8; /* Szary odcień tła komórek */
+        }
+
+        th {
+            background-color: #007BFF;
+            color: #fff;
+        }
+
+        td button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        td button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: none; /* Usunięcie domyślnego stylu przycisku */
+        }
+
+        td button.edtbtn {
+            background-color: #007BFF; /* Kolor przycisku edycji */
+            color: #fff;
+            margin-right: 5px;
+        }
+
+        td button.dltbtn {
+            background-color: #ff2b2b; /* Kolor przycisku usuwania */
+            color: #fff;
+        }
+
+        #addBookModal, #editBookModal {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+    </style>
+    <style>
+        .g-signin2 {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <button id="motive" onclick="toggleDarkMode()">Zmień motyw</button>
+    <button id="language" onclick="toggleLanguage()">Zmień język</button>
+    <h1 id="pageTitle">Laboratorium PAMIW - aplikacja webowa</h1>
+
+    <button id="add1" onclick="showAddBookModal()">Dodaj Książkę</button>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th id="id">ID Książki</th>
+                <th id="title1">Tytuł</th>
+                <th id="author1">Autor</th>
+                <th id="editdelete">Edytuj/Usuń</th>
+            </tr>
+        </thead>
+        <tbody id="bookTableBody">
+        </tbody>
+    </table>
+
+    <div id="addBookModal" style="display: none;">
+        <label for="title">Tytuł: </label>
+        <input type="text" id="title" name="title">
+
+        <label for="author">Autor: </label>
+        <input type="text" id="author" name="author">
+
+        <button id="add" onclick="addBook()">Dodaj Książkę</button>
+        <button id="cancel" onclick="hideAddBookModal()">Anuluj</button>
+    </div>
+
+    <div id="editBookModal" style="display: none;">
+        <label for="editTitle">Tytuł:</label>
+        <input type="text" id="editTitle">
+
+        <label for="editAuthor">Autor:</label>
+        <input type="text" id="editAuthor">
+
+        <button id="saveEditButton">Zapisz zmiany</button>
+        <button onclick="hideEditBookModal()">Anuluj</button>
+    </div>
+
+    <script>
+        function showAddBookModal() {
+            const modal = document.getElementById('addBookModal');
+            modal.style.display = 'block';
+        }
+
+        function hideAddBookModal() {
+            const modal = document.getElementById('addBookModal');
+            modal.style.display = 'none';
+        }
+
+        function addBook() {
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+
+            fetch('/books', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, author }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Added book:', data);
+
+                fetchBookList();
+                hideAddBookModal();
+            })
+            .catch(error => {
+                console.error('Error while adding book', error);
+            });
+        }
+
+        function fetchBookList() {
+            fetch('/books')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('bookTableBody');
+                tableBody.innerHTML = '';
+
+                data.forEach(book => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${book.id}</td>
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>
+                            <button class="edtbtn" id="edit" onclick="editBook(${book.id})">EDYTUJ</button>
+                            <button class="dltbtn" id="del" onclick="deleteBook(${book.id})">USUŃ</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Błąd podczas pobierania listy książek:', error);
+            });
+        }
+
+        function editBook(bookId) {
+            fetch(`/books/${bookId}`)
+                .then(response => response.json())
+                .then(book => {
+                    showEditBookModal(book);
+                })
+                .catch(error => {
+                    console.error('Error while fetching data for edit', error);
+                });
+        }
+
+        function showEditBookModal(book) {
+            const editBookModal = document.getElementById('editBookModal');
+            
+            document.getElementById('editTitle').value = book.title;
+            document.getElementById('editAuthor').value = book.author;
+
+            document.getElementById('saveEditButton').onclick = function () {
+                const newTitle = document.getElementById('editTitle').value;
+                const newAuthor = document.getElementById('editAuthor').value;
+
+                updateBook(book.id, newTitle, newAuthor);
+            };
+
+            editBookModal.style.display = 'block';
+        }
+
+        function updateBook(bookId, newTitle, newAuthor) {
+            fetch(`/books/${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title: newTitle, author: newAuthor }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Updated book with ID:', bookId);
+
+                fetchBookList();
+                
+                hideEditBookModal();
+            })
+            .catch(error => {
+                console.error('Error while updating book', error);
+            });
+        }
+
+        function hideEditBookModal() {
+            const editBookModal = document.getElementById('editBookModal');
+            editBookModal.style.display = 'none';
+        }
+
+        function deleteBook(bookId) {
+            fetch(`/books/${bookId}`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Deleted book with ID:', bookId);
+                fetchBookList();
+            })
+            .catch(error => {
+                console.error('Error while deleting book', error);
+            });
+        }
+
+        fetchBookList();
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/templates/service_worker.js')
+                .then((registration) => {
+                    console.log('Registered:', registration.scope);
+                })
+                .catch((error) => {
+                    console.error('Register error:', error);
+                });
+        }
+    </script>
+    <script>
+        function onSignIn(googleUser) {
+            var profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId());
+            console.log('Full Name: ' + profile.getName());
+            console.log('Given Name: ' + profile.getGivenName());
+            console.log('Family Name: ' + profile.getFamilyName());
+            console.log('Image URL: ' + profile.getImageUrl());
+            console.log('Email: ' + profile.getEmail());
+        }
+    
+        function signOut() {
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+                console.log('User signed out.');
+            });
+        }
+    </script>
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+        }
+    </script>
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+        }
+
+        function toggleLanguage() {
+            const pageTitle = document.getElementById('pageTitle');
+            const currentLanguage = pageTitle.dataset.language || 'en';
+
+            if (currentLanguage === 'en') {
+                pageTitle.textContent = 'Laboratorium PAMIW - aplikacja webowa';
+                id.textContent = 'ID Książki';
+                title.textContent = 'Tytuł';
+                title1.textContent = 'Tytuł';
+                author.textContent = 'Autor';
+                author1.textContent = 'Autor';
+                editdelete.textContent = 'Edytuj/Usuń';
+                motive.textContent = 'Zmień motyw';
+                language.textContent = 'Zmień język';
+                edit.textContent = 'Edytuj';
+                del.textContent = 'Usuń';
+                add.textContent = 'Dodaj Książkę';
+                add1.textContent = 'Dodaj Książkę';
+                pageTitle.dataset.language = 'pl';
+                id.dataset.language = 'pl';
+                title.dataset.language = 'pl';
+                title1.dataset.language = 'pl';
+                author.dataset.language = 'pl';
+                author1.dataset.language = 'pl';
+                editdelete.dataset.language = 'pl';
+                motive.dataset.language = 'pl';
+                language.dataset.language = 'pl';
+                edit.dataset.language = 'pl';
+                del.dataset.language = 'pl';
+            } else {
+                pageTitle.textContent = 'PAMIW Laboratory - web application';
+                id.textContent = 'Book ID';
+                title.textContent = 'Title';
+                title1.textContent = 'Title';
+                author.textContent = 'Author';
+                author1.textContent = 'Author';
+                editdelete.textContent = 'Edit/Delete';
+                motive.textContent = 'Change motive';
+                language.textContent = 'Change language';
+                edit.textContent = 'Edit';
+                del.textContent = 'Delete';
+                add.textContent = 'Add Book';
+                add1.textContent = 'Add Book';
+                pageTitle.dataset.language = 'en';
+                id.dataset.language = 'en';
+                title.dataset.language = 'en';
+                title1.dataset.language = 'en';
+                author.dataset.language = 'en';
+                author1.dataset.language = 'en';
+                editdelete.dataset.language = 'en';
+                motive.dataset.language = 'en';
+                language.dataset.language = 'en';
+                edit.dataset.language = 'en';
+                del.dataset.language = 'en';
+            }
+        }
+    </script>
+</body>
+</html>

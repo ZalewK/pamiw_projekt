@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, FlatList, Button, TextInput, Modal, StyleSheet } from 'react-native';
+import { RNCamera } from 'react-native-camera';
 import axios from 'axios';
 
 const App = () => {
@@ -8,10 +9,21 @@ const App = () => {
   const [newBookAuthor, setNewBookAuthor] = useState('');
   const [editingBook, setEditingBook] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isCameraVisible, setCameraVisible] = useState(false);
+
+  const cameraRef = useRef(null);
 
   useEffect(() => {
     fetchBooks();
   }, []);
+
+  const takePicture = async () => {
+      if (cameraRef.current) {
+        const options = { quality: 0.5, base64: true };
+        const data = await cameraRef.current.takePictureAsync(options);
+        console.log(data.uri);
+      }
+  };
 
   const fetchBooks = async () => {
     try {
@@ -78,6 +90,7 @@ const App = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Lista Książek</Text>
+      <Button title="Otwórz kamerę" onPress={() => setCameraVisible(true)} />
       <FlatList
         data={books}
         keyExtractor={(item) => item.id.toString()}
@@ -127,6 +140,20 @@ const App = () => {
           </View>
         </View>
       </Modal>
+      <Modal visible={isCameraVisible} animationType="slide" transparent={true}>
+                    <View style={{ flex: 1 }}>
+                      <RNCamera
+                        ref={cameraRef}
+                        style={{ flex: 1 }}
+                        type={RNCamera.Constants.Type.back}
+                        flashMode={RNCamera.Constants.FlashMode.off}
+                      />
+                      <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
+                        <Button title="Zrob zdjecie" onPress={takePicture} />
+                        <Button title="Zamknij kamerę" onPress={() => setCameraVisible(false)} />
+                      </View>
+                    </View>
+                  </Modal>
     </View>
   );
 };

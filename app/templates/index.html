@@ -194,7 +194,7 @@
             const title = document.getElementById('title').value;
             const author = document.getElementById('author').value;
 
-            fetch('/books', {
+            fetch('https://pamiw-web.onrender.com/books', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -213,34 +213,43 @@
             });
         }
 
-        function fetchBookList() {
-            fetch('/books')
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.getElementById('bookTableBody');
-                tableBody.innerHTML = '';
 
-                data.forEach(book => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${book.id}</td>
-                        <td>${book.title}</td>
-                        <td>${book.author}</td>
-                        <td>
-                            <button class="edtbtn" id="edit" onclick="editBook(${book.id})">EDYTUJ</button>
-                            <button class="dltbtn" id="del" onclick="deleteBook(${book.id})">USUŃ</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
+        function fetchBookList() {
+            fetch('https://pamiw-web.onrender.com/books')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response data:', data);
+
+                    const tableBody = document.getElementById('bookTableBody');
+                    tableBody.innerHTML = '';
+
+                    // Sprawdź, czy data.books jest dostępne i jest tablicą
+                    if (data.books && Array.isArray(data.books)) {
+                        data.books.forEach(book => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${book.id}</td>
+                                <td>${book.title}</td>
+                                <td>${book.author}</td>
+                                <td>
+                                    <button class="edtbtn" id="edit" onclick="editBook(${book.id})">EDYTUJ</button>
+                                    <button class="dltbtn" id="del" onclick="deleteBook(${book.id})">USUŃ</button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        console.error('Invalid data format:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Błąd podczas pobierania listy książek:', error);
                 });
-            })
-            .catch(error => {
-                console.error('Błąd podczas pobierania listy książek:', error);
-            });
         }
 
+
         function editBook(bookId) {
-            fetch(`/books/${bookId}`)
+            fetch(`https://pamiw-web.onrender.com/books/${bookId}`)
                 .then(response => response.json())
                 .then(book => {
                     showEditBookModal(book);
@@ -267,7 +276,7 @@
         }
 
         function updateBook(bookId, newTitle, newAuthor) {
-            fetch(`/books/${bookId}`, {
+            fetch(`https://pamiw-web.onrender.com/books/${bookId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -293,7 +302,7 @@
         }
 
         function deleteBook(bookId) {
-            fetch(`/books/${bookId}`, {
+            fetch(`https://pamiw-web.onrender.com/books/${bookId}`, {
                 method: 'DELETE',
             })
             .then(response => response.json())

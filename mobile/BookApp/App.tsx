@@ -25,18 +25,18 @@ const App = () => {
       }
   };
 
-  const fetchBooks = async () => {
-    try {
-      const response = await axios.get('http://10.2.79.89:5000/books');
-      setBooks(response.data);
-    } catch (error) {
-      console.error('Błąd podczas pobierania książek', error);
-    }
-  };
+    const fetchBooks = async () => {
+      try {
+        const response = await axios.get('https://pamiw-web.onrender.com/books');
+        setBooks(response.data);
+      } catch (error) {
+        console.error('Błąd podczas pobierania książek', error);
+      }
+    };
 
   const addBook = async () => {
     try {
-      await axios.post('http://10.2.79.89:5000/books', {
+      await axios.post('https://pamiw-web.onrender.com/books', {
         title: newBookTitle,
         author: newBookAuthor,
       });
@@ -50,7 +50,7 @@ const App = () => {
 
   const deleteBook = async (bookId) => {
     try {
-      await axios.delete(`http://10.2.79.89:5000/books/${bookId}`);
+      await axios.delete(`https://pamiw-web.onrender.com/books/${bookId}`);
       fetchBooks();
     } catch (error) {
       console.error('Błąd podczas usuwania książki', error);
@@ -59,7 +59,7 @@ const App = () => {
 
   const editBook = async () => {
     try {
-      await axios.put(`http://10.2.79.89:5000/books/${editingBook.id}`, {
+      await axios.put(`https://pamiw-web.onrender.com/books/${editingBook.id}`, {
         title: newBookTitle,
         author: newBookAuthor,
       });
@@ -91,20 +91,20 @@ const App = () => {
     <View style={styles.container}>
       <Text style={styles.header}>Lista Książek</Text>
       <Button title="Otwórz kamerę" onPress={() => setCameraVisible(true)} />
-      <FlatList
-        data={books}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.bookContainer}>
-            <Text style={styles.bookTitle}>Tytuł: {item.title}</Text>
-            <Text style={styles.bookAuthor}>Autor: {item.author}</Text>
-            <View style={styles.buttonContainer}>
-              <Button title="Usuń" onPress={() => deleteBook(item.id)} color="red" />
-              <Button title="Edytuj" onPress={() => openEditModal(item)} />
+        <FlatList
+          data={books.books}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.bookContainer}>
+              <Text style={styles.bookTitle}>Tytuł: {item.title}</Text>
+              <Text style={styles.bookAuthor}>Autor: {item.author}</Text>
+              <View style={styles.buttonContainer}>
+                <Button title="Usuń" onPress={() => deleteBook(item.id)} color="red" />
+                <Button title="Edytuj" onPress={() => openEditModal(item)} />
+              </View>
             </View>
-          </View>
-        )}
-      />
+          )}
+        />
       <TextInput
         style={styles.input}
         placeholder="Tytuł nowej książki"
@@ -141,19 +141,19 @@ const App = () => {
         </View>
       </Modal>
       <Modal visible={isCameraVisible} animationType="slide" transparent={true}>
-                    <View style={{ flex: 1 }}>
-                      <RNCamera
-                        ref={cameraRef}
-                        style={{ flex: 1 }}
-                        type={RNCamera.Constants.Type.back}
-                        flashMode={RNCamera.Constants.FlashMode.off}
-                      />
-                      <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
-                        <Button title="Zrob zdjecie" onPress={takePicture} />
-                        <Button title="Zamknij kamerę" onPress={() => setCameraVisible(false)} />
-                      </View>
-                    </View>
-                  </Modal>
+        <View style={{ flex: 1 }}>
+          <RNCamera
+            ref={cameraRef}
+            style={{ flex: 1 }}
+            type={RNCamera.Constants.Type.back}
+            flashMode={RNCamera.Constants.FlashMode.off}
+          />
+          <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
+            <Button title="Zrob zdjecie" onPress={takePicture} />
+            <Button title="Zamknij kamerę" onPress={() => setCameraVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

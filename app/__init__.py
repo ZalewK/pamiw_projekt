@@ -1,3 +1,5 @@
+# __init__.py
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -11,8 +13,6 @@ def create_app():
     CORS(app)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///books.db'
     db.init_app(app)
-
-    #BookService.clear_and_initialize_data()
 
     from app.controllers.book_controller import book_bp
     from app.views.home import home_bp
